@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat WebSocket</title>
+    <style>
+        body { font-family: sans-serif; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+        #messageInput { width: calc(100% - 80px); padding: 5px; }
+        #sendButton { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>Chat em Tempo Real</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
+    <button id="sendButton">Enviar</button>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Conectando ao WebSocket. Use ws:// para HTTP e wss:// para HTTPS
+        // Se estiver rodando localmente, geralmente é ws://localhost:8000/ws
+        const ws = new WebSocket("ws://localhost:8000/ws");
+
+        ws.onopen = (event) => {
+            messagesDiv.innerHTML += "<p><em>Conectado ao servidor.</em></p>";
+            console.log("WebSocket connection opened:", event);
+        };
+
+        ws.onmessage = (event) => {
+            messagesDiv.innerHTML += `<p>${event.data}</p>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rolar para o final
+        };
+
+        ws.onclose = (event) => {
+            messagesDiv.innerHTML += "<p><em>Desconectado do servidor.</em></p>";
+            console.log("WebSocket connection closed:", event);
+        };
+
+        ws.onerror = (error) => {
+            messagesDiv.innerHTML += "<p style='color: red;'><em>Erro na conexão.</em></p>";
+            console.error("WebSocket error:", error);
+        };
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message) {
+                ws.send(message);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
